@@ -26,7 +26,7 @@ if api_key:
                     prompt = f"Feature: {option}\nInput: {user_input}\nProvide a detailed and accurate response."
                     
                     response = client.models.generate_content(
-                        model='gemini-1.5-flash',
+                        model='gemini-2.5-flash',
                         contents=prompt
                     )
                     
