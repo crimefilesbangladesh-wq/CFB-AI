@@ -1,40 +1,38 @@
 import streamlit as st
-from google import genai
+import google.generativeai as genai
 from duckduckgo_search import DDGS
-import requests
 
 st.set_page_config(page_title="Crime Files BD AI", page_icon="🚨")
 st.title("🚨 Crime Files BD AI (CFB AI)")
 
-# Sidebar API Key Input
 api_key = st.sidebar.text_input("Enter Gemini API Key:", type="password")
 
 if api_key:
-    try:
-        client = genai.Client(api_key=api_key)
+    genai.configure(api_key=api_key)
+    model = genai.GenerativeModel("gemini-1.5-flash")
 
-        option = st.selectbox(
-            "Choose Feature:",
-            ["Fact Checking", "Automated Investigation Support"]
-        )
+    option = st.selectbox(
+        "Choose Feature:",
+        ["Fact Checking", "Automated Investigation Support"]
+    )
 
-        user_input = st.text_area("Enter News/Context/Prompt:")
+    user_input = st.text_area("Enter News/Context/Prompt:")
 
-        if st.button("Run CFB AI"):
-            if user_input.strip() != "":
-                with st.spinner("Analyzing with Gemini AI..."):
-                    prompt = f"Feature: {option}\nInput: {user_input}\nProvide a detailed and accurate response."
+    if st.button("Run CFB AI"):
+        if user_input:
+            with st.spinner("CFB AI is thinking..."):
+                try:
+                    # Search news
+                    with DDGS() as ddgs:
+                        search_results = list(ddgs.text(user_input, max_results=3))
                     
-                    response = client.models.generate_content(
-                        model='gemini-2.5-flash',
-                        contents=prompt
-                    )
+                    prompt = f"Feature: {option}\nContext: {user_input}\nSearch Results: {search_results}\n\nGive a detailed Bangla fact-checked report with source links for Crime Files BD."
                     
-                    st.subheader("Result:")
-                    st.write(response.text)
-            else:
-                st.warning("Please enter some text to process.")
-    except Exception as e:
-        st.error(f"An error occurred: {str(e)}")
+                    response = model.generate_content(prompt)
+                    st.success(response.text)
+                except Exception as e:
+                    st.error(f"An error occurred: {e}")
+        else:
+            st.warning("Please enter some text!")
 else:
-    st.info("Please enter your Gemini API Key in the sidebar to proceed.")
+    st.info("Please enter your Gemini API Key in sidebar to start.")
