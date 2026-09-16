@@ -19,7 +19,7 @@ if api_key:
             if user_input.strip() != "":
                 with st.spinner("Gemini উত্তর তৈরি করছে..."):
                     response = client.models.generate_content(
-                        model='gemini-2.5-flash',
+                        model='gemini-1.5-flash',
                         contents=user_input
                     )
                     st.success("উত্তর:")
