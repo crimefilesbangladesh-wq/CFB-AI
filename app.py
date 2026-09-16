@@ -38,4 +38,4 @@ if api_key:
         st.error(f"An error occurred: {str(e)}")
 else:
     st.info("Please enter your Gemini API Key in the sidebar to proceed.")
-
+    
