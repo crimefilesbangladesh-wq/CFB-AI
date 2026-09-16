@@ -1,39 +1,49 @@
 import streamlit as st
 import google.generativeai as genai
-from duckduckgo_search import DDGS
+import os
 
-st.set_page_config(page_title="Crime Files BD AI", page_icon="🚨")
-st.title("🚨 Crime Files BD AI (CFB AI)")
+# পেজ সেটআপ - যাতে মোবাইলে কেটে না যায়
+st.set_page_config(
+    page_title="Crime Files Bangladesh",
+    page_icon="🚨",
+    layout="centered"
+)
 
-api_key = st.sidebar.text_input("Enter Gemini API Key:", type="password")
+# CSS - লেখা যাতে না কাটে
+st.markdown("""
+<style>
+    .main-title {
+        font-size: 28px !important;
+        font-weight: bold;
+        text-align: center;
+        white-space: normal !important;
+    }
+</style>
+""", unsafe_allow_html=True)
 
-if api_key:
-    genai.configure(api_key=api_key)
-    model = genai.GenerativeModel("gemini-1.5-flash")
+st.markdown('<div class="main-title">🚨 Crime Files Bangladesh AI</div>', unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; color: gray;'>বাংলাদেশের অপরাধ বিষয়ক তথ্য ও সহায়তা</p>", unsafe_allow_html=True)
+st.divider()
 
-    option = st.selectbox(
-        "Choose Feature:",
-        ["Fact Checking", "Automated Investigation Support"]
-    )
+# API Key - Streamlit Secrets থেকে নিবে
+try:
+    api_key = st.secrets["GEMINI_API_KEY"]
+except:
+    api_key = os.getenv("GEMINI_API_KEY")
 
-    user_input = st.text_area("Enter News/Context/Prompt:")
+if not api_key:
+    st.error("API Key পাওয়া যায়নি! Streamlit Secrets এ GEMINI_API_KEY যোগ করো।")
+    st.stop()
 
-    if st.button("Run CFB AI"):
-        if user_input:
-            with st.spinner("CFB AI is thinking..."):
-                try:
-                    # Search news
-                    with DDGS() as ddgs:
-                        search_results = list(ddgs.text(user_input, max_results=3))
-                    
-                    prompt = f"Feature: {option}\nContext: {user_input}\nSearch Results: {search_results}\n\nGive a detailed Bangla fact-checked report with source links for Crime Files BD."
-                    
-                    response = model.generate_content(prompt)
-                    st.success(response.text)
-                except Exception as e:
-                    st.error(f"An error occurred: {e}")
-        else:
-            st.warning("Please enter some text!")
-else:
-    st.info("Please enter your Gemini API Key in sidebar to start.")
-    
+genai.configure(api_key=api_key)
+model = genai.GenerativeModel('gemini-1.5-flash')
+
+# Chat History
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+for msg in st.session_state.messages:
+    with st.chat_message(msg["role"]):
+        st.markdown(msg["content"])
+
+# User
